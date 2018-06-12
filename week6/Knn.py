@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import math
 import pandas as pd
 
-
 PI = math.pi
 class Kneighbor():
     def __init__(self,n_neighbors=1):
@@ -15,14 +14,10 @@ class Kneighbor():
         self.class_label = None
 
     def fit(self,x_train, y_train):
-        print("x_train:",x_train.shape)
-        print("y_train:",y_train.shape)
         if len(x_train.shape) > 1:
-            print("yes")
             self.dim = x_train.shape[1]
         else:
             self.dim = 1
-        print("dim:",self.dim)
         self.class_label = np.unique(y_train)
         self.x_data = x_train.reshape(-1,self.dim)
         self.y_data = y_train.reshape(-1,1)
@@ -33,15 +28,13 @@ class Kneighbor():
         return result
 
     def get_predict(self, x_test,v):
-        if v%50 == 0:
-            print("v={}".format(v))
         distance = np.dot((self.x_data-x_test),(self.x_data-x_test).T)
         candidate_id = np.argsort(distance)[::-1][:self.n_neighbors]
         candidate = self.y_data
         count_class = [np.sum(candidate==cls)for cls in self.class_label]
         result_id = np.argmax(count_class)
-        _cls = self.class_label[result_id]
-        return _cls
+        cls = self.class_label[result_id]
+        return cls
 
 
 def cross_validate(x_data, y_data, n_neighbor,cv=5):
@@ -67,7 +60,6 @@ def cross_validate(x_data, y_data, n_neighbor,cv=5):
         cls = Kneighbor()
         cls.fit(x_train, y_train)
         p = cls.predict(x_test)
-        print(p)
         accuracy = np.mean((p==y))
         result += accuracy
     result = result/cv
@@ -84,10 +76,13 @@ def load_data():
     train_with_answer = np.hstack((whole_train, y_true.reshape(-1,1)))
     return train_with_answer, digit_test
 
-
 train_data, test_data = load_data()
 
-accuracy_list = []
+
+np.random.shuffle(train_data)
 x_data = train_data[:,:-1]
 y_data = train_data[:,-1]
-cross_validate(x_data, y_data, 3)
+h = np.arange(10)
+score = [cross_validate(x_data, y_data, height) for height in h]
+plt.plot(h,score)
+plt.show()
